@@ -1,0 +1,231 @@
+<title>Contract Lifecycle Ontology</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column, wide figures for the graph and tables, ledger-like data rows */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#18212f; --muted:#5b6678; --line:#d5dbe4;
+  --accent:#2c4bd6; --accent-soft:#e3e8fb; --ok:#1d7a4c; --ok-soft:#dcf1e5; --warn:#a65a00; --warn-soft:#fbead2;
+  --display:"Archivo",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10141b; --surface:#171c26; --ink:#e6eaf1; --muted:#97a2b5; --line:#2b3342;
+  --accent:#8ea3ff; --accent-soft:#1f2848; --ok:#5fd19a; --ok-soft:#143326; --warn:#f2b15c; --warn-soft:#3a2a12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10141b; --surface:#171c26; --ink:#e6eaf1; --muted:#97a2b5; --line:#2b3342;
+  --accent:#8ea3ff; --accent-soft:#1f2848; --ok:#5fd19a; --ok-soft:#143326; --warn:#f2b15c; --warn-soft:#3a2a12; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1000px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:800;line-height:1.05}
+h2{font-size:1.5rem;font-weight:700}
+h3{font-size:1rem;font-weight:700}
+p{margin:0;max-width:65ch}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);font-size:1.1rem}
+section{display:grid;gap:16px}
+.head{display:grid;gap:14px}
+.stats{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:8px}
+.stat{flex:1 1 140px;padding:14px 16px 14px 0;display:grid;gap:2px}
+.stat b{font-family:var(--display);font-size:1.7rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.8rem;color:var(--muted)}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto}
+svg text{font-family:var(--mono);font-size:12px}
+.node rect{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.node.core rect{fill:var(--accent-soft);stroke:var(--accent)}
+.node.out rect{stroke:var(--ok)}
+.node text{fill:var(--ink);font-family:var(--body);font-weight:600;font-size:13px}
+.node .sub{fill:var(--muted);font-weight:400;font-size:10.5px;font-family:var(--mono)}
+.edge{stroke:var(--muted);stroke-width:1.3;fill:none}
+.edge-l{fill:var(--muted);font-size:10.5px}
+.arrow{fill:var(--muted)}
+ol.steps{list-style:none;margin:0;padding:0;display:grid;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);counter-increment:s}
+ol.steps li::before{content:counter(s);font-family:var(--mono);color:var(--accent);font-weight:500}
+ol.steps li.phase{display:block;padding:18px 0 6px;border-bottom:0;counter-increment:none;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+ol.steps li.phase::before{content:none}
+.steps .act{font-family:var(--mono);font-size:.85rem;font-weight:500}
+.steps .who{font-size:.85rem;color:var(--muted)}
+.pill{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px;white-space:nowrap;background:var(--accent-soft);color:var(--accent)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:620px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);font-size:.82rem}
+.sev{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;background:var(--warn)}
+.sev.m{background:var(--accent)}
+.bars{display:grid;gap:10px;align-content:start}
+.bar{display:grid;grid-template-columns:9rem minmax(0,1fr) 5.5rem;gap:12px;align-items:center;font-size:.88rem}
+.track{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--accent)} .fill.alt{background:var(--ok)}
+.note{font-size:.82rem;color:var(--muted)}
+pre{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.6}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px}
+.two > *{min-width:0}
+.stack{display:grid;gap:12px;align-content:start}
+.check{border-left:3px solid var(--ok);padding:8px 14px;background:var(--surface);font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px;min-width:0}
+.rule p{font-size:.9rem;color:var(--muted)}
+@media (max-width:560px){.bar{grid-template-columns:6.5rem minmax(0,1fr) 4.5rem}ol.steps li{grid-template-columns:1.6rem minmax(0,1fr)}ol.steps li .pill{grid-column:2;justify-self:start}}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:10px;align-content:start;min-width:0}
+.card p{font-size:.92rem;color:var(--muted)}
+.card pre{background:var(--bg);border:0;font-size:.76rem;padding:12px}
+.tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.k{color:var(--accent)} .c{color:var(--muted)}
+.res{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.res.ok{background:var(--ok-soft);color:var(--ok)} .res.no{background:var(--warn-soft);color:var(--warn)}
+.why{font-size:.85rem;color:var(--muted)}
+td.code{font-family:var(--mono);font-size:.8rem;white-space:nowrap}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--mono);font-size:.8rem}
+.flow span{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:4px 8px}
+.flow i{font-style:normal;color:var(--muted)}
+.flow span.ai{border-color:var(--accent);color:var(--accent)}
+</style>
+<main class="wrap">
+  <header class="head">
+    <div class="eyebrow">Ontology for AI · Contract lifecycle</div>
+    <h1>Contract Lifecycle Ontology</h1>
+    <p class="lede">AI reads signed contracts and operates the lifecycle for NDA, MSA, SOW, and Order Form. The ontology decides what the model extracts, what it is allowed to change, and which of its actions go through. Every attempt is audited.</p>
+    <div class="stats">
+      <div class="stat"><b>5 of 13</b><span>agent actions blocked by the ontology</span></div>
+      <div class="stat"><b>0.15 → 1.00</b><span>validation precision, strings vs typed</span></div>
+      <div class="stat"><b>3 of 3</b><span>unkeyed contract changes caught</span></div>
+      <div class="stat"><b>$2.76</b><span>projected extraction cost per 1,000 contracts</span></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Why AI needs the ontology here</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Without an ontology</th><th>With this ontology</th></tr></thead>
+      <tbody>
+        <tr><td>"Extract the key terms" returns free text and invented fields</td><td>The extraction prompt is generated from the schema, and a guard keeps only known properties with valid types</td></tr>
+        <tr><td>Validation compares strings, so <span class="mono">2029-02-01</span> and <span class="mono">February 01, 2029</span> look different</td><td>Values are typed, so dates and money compare by meaning</td></tr>
+        <tr><td>An agent with write access can edit any record, sign for a partner, or delete the evidence</td><td>The agent's tools are the ontology's actions; state, link, lock, and delegation rules decide what happens</td></tr>
+        <tr><td>No record of what the AI tried</td><td>Every attempt, allowed or blocked, is in the audit log with the actor</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>The model</h2>
+    <p>Contract is the hub. The <span class="mono">governed_by</span> link from a SOW or Order Form to its MSA lets a rule read the contract hierarchy.</p>
+    <figure>
+      <svg viewBox="0 0 760 312" width="100%" style="min-width:620px" role="img" aria-label="Contract ontology graph">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+        <path class="edge" d="M340 130 C340 66 410 66 410 128" marker-end="url(#ah)"/><text class="edge-l" x="268" y="62">governed_by (SOW, Order Form → MSA)</text>
+        <line class="edge" x1="180" y1="152" x2="298" y2="152" marker-end="url(#ah)"/><text class="edge-l" x="222" y="145">signs</text>
+        <line class="edge" x1="450" y1="140" x2="578" y2="60" marker-end="url(#ah)"/><text class="edge-l" x="470" y="88">evidenced_by</text>
+        <line class="edge" x1="450" y1="152" x2="578" y2="152" marker-end="url(#ah)"/><text class="edge-l" x="494" y="145">bills</text>
+        <line class="edge" x1="450" y1="166" x2="578" y2="258" marker-end="url(#ah)"/><text class="edge-l" x="478" y="226">has_finding</text>
+        <line class="edge" x1="375" y1="174" x2="375" y2="248" marker-end="url(#ah)"/><text class="edge-l" x="382" y="216">recorded_in</text>
+        <g class="node"><rect x="30" y="130" width="150" height="44" rx="4"/><text x="44" y="149">Partner</text><text class="sub" x="44" y="165">customer · vendor</text></g>
+        <g class="node core"><rect x="300" y="130" width="150" height="44" rx="4"/><text x="314" y="149">Contract</text><text class="sub" x="314" y="165">NDA · MSA · SOW · Order</text></g>
+        <g class="node"><rect x="580" y="20" width="150" height="44" rx="4"/><text x="594" y="39">Document</text><text class="sub" x="594" y="55">signed contract</text></g>
+        <g class="node"><rect x="580" y="130" width="150" height="44" rx="4"/><text x="594" y="149">BillingLine</text><text class="sub" x="594" y="165">locked on submit</text></g>
+        <g class="node"><rect x="580" y="240" width="150" height="44" rx="4"/><text x="594" y="259">Finding</text><text class="sub" x="594" y="275">field · severity</text></g>
+        <g class="node out"><rect x="300" y="250" width="150" height="44" rx="4"/><text x="314" y="269">LedgerEntry</text><text class="sub" x="314" y="285">what Finance reports on</text></g>
+      </svg>
+    </figure>
+    <div class="flow" aria-label="Lifecycle actions">
+      <span>start_review · Legal and BD</span><i>→</i><span>execute · Partner</span><i>→</i><span>submit · BD</span><i>→</i><span>lock_and_bill · Billing</span><i>→</i><span class="ai">validate · AI</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Three places the ontology meets AI</h2>
+    <div class="cards">
+      <div class="card">
+        <span class="tag">1 · Extract</span>
+        <h3>The schema is the prompt, the types are the guard</h3>
+        <p>The model is asked to fill the Contract schema, not to "find the key terms." Its answer is checked against property types before it reaches any record.</p>
+<pre><span class="k">def</span> schema():
+    types = OBJECTS["Contract"]
+    <span class="k">return</span> {p: types[p] <span class="k">for</span> p <span class="k">in</span> DOC_BINDING.values()}
+
+<span class="c"># guard on a malformed model answer</span>
+rejected end_date='sometime in late 2027': not a valid date value
+rejected total_value='about 98k': not a valid money value
+ignored 'auto_renew': not a Contract property
+rejected billing_lines.M3='TBD': not a valid money value</pre>
+      </div>
+      <div class="card">
+        <span class="tag">2 · Validate</span>
+        <h3>Typed comparison against the locked record</h3>
+        <p>The guarded extraction is compared with the Contract and its BillingLines. Findings are typed fields, so the eval can score them against ground truth.</p>
+<pre>CT-2 payment_terms  system Net 30      | signed Net 45
+CT-3 billing_lines  system M2=51000.0  | signed M2=63000.0
+CT-3 total_value    system 86000.0     | signed 98000.0
+CT-6 end_date       system 2027-04-01  | signed 2027-10-01</pre>
+      </div>
+      <div class="card">
+        <span class="tag">3 · Act</span>
+        <h3>Agent tools are generated from action types</h3>
+        <p>The agent gets one tool per action plus read and edit. Delegation keeps signing with the Partner; locks, link rules, and the property list apply to the agent like anyone else.</p>
+<pre>tools = [{"name": a,
+          "description": f"Owner: {owner}. Allowed from: {allowed}."}
+         <span class="k">for</span> a, (owner, allowed, _) <span class="k">in</span> ACTIONS.items()]
+
+DELEGATED_TO_AGENT = {"submit", "lock_and_bill", "validate"}</pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Agent run: "get every contract to Finance and resolve issues"</h2>
+    <p>CT-2 is still in review with Legal. Everything else is signed. The agent works only through the generated tools.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Tool call</th><th>Result</th><th>Ontology rule that applied</th></tr></thead>
+      <tbody>
+        <tr><td class="code">submit(CT-3)</td><td><span class="res no">BLOCKED</span></td><td class="why">Link rule: parent MSA CT-2 is IN_REVIEW, not signed</td></tr>
+        <tr><td class="code">execute(CT-2)</td><td><span class="res no">BLOCKED</span></td><td class="why">Delegation: signing belongs to the Partner</td></tr>
+        <tr><td class="code">submit(CT-6)</td><td><span class="res ok">SUBMITTED</span></td><td class="why">Parent MSA CT-5 is signed</td></tr>
+        <tr><td class="code">lock_and_bill(CT-6)</td><td><span class="res ok">LOCKED</span></td><td class="why">Billing lines created and locked</td></tr>
+        <tr><td class="code">validate(CT-6)</td><td><span class="res ok">REVIEW_NEEDED</span></td><td class="why">Signed end date differs from the system</td></tr>
+        <tr><td class="code">update_contract(CT-6, end_date)</td><td><span class="res no">BLOCKED</span></td><td class="why">Lock: the agent tried to make the record match so it would pass</td></tr>
+        <tr><td class="code">update_contract(CT-1, approved_by)</td><td><span class="res no">BLOCKED</span></td><td class="why">Schema: approved_by is not a Contract property</td></tr>
+        <tr><td class="code">delete_finding(CT-6)</td><td><span class="res no">BLOCKED</span></td><td class="why">No such action exists in the ontology</td></tr>
+        <tr><td class="code">submit → lock_and_bill → validate (CT-1)</td><td><span class="res ok">PENDING_FINANCE</span></td><td class="why">Clean contract reaches Finance</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">The agent is simulated: a plan of typical risky tool calls replayed through the same generated tools a model would receive. No API calls.</p>
+  </section>
+
+  <section class="two">
+    <div class="stack">
+      <h2>Eval</h2>
+      <p>Field-level score against the three planted changes.</p>
+      <div class="tbl"><table style="min-width:0">
+        <thead><tr><th>Validator</th><th>Precision</th><th>Recall</th></tr></thead>
+        <tbody>
+          <tr><td>Without ontology (strings)</td><td class="num">0.15</td><td class="num">0.75</td></tr>
+          <tr><td>With ontology (typed, guarded)</td><td class="num">1.00</td><td class="num">1.00</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="stack">
+      <h2>AI cost</h2>
+      <p>Each model call is metered by purpose and contract, and the per-contract cost is written to the Finance ledger.</p>
+      <div class="tbl"><table style="min-width:0">
+        <thead><tr><th>Purpose</th><th>Calls</th><th>Projected cost</th></tr></thead>
+        <tbody>
+          <tr><td>Extraction</td><td class="num">8</td><td class="num">$0.0221</td></tr>
+          <tr><td>Per 1,000 contracts</td><td class="num">1,000</td><td class="num">$2.76</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">Projected from prompt size at example prices. No API calls are made.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Run it</h2>
+<pre>python demo.py          <span class="c"># standard library only, no API calls</span>
+python -m pytest -q</pre>
+    <p class="note">ontology.py holds the model and store, ai.py the schema-built prompt, guard, agent tools, simulated model, and cost meter, demo.py the data and scenarios. All partners and figures are fictional.</p>
+  </section>
+</main>
